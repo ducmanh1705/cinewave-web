@@ -81,7 +81,7 @@ export const getBooking = (bookingId) => request(`/bookings/${bookingId}`);
 export const cancelBooking = (bookingId) =>
   request(`/bookings/${bookingId}/cancel`, { method: 'POST' });
 
-export const listMyBookings = () => request('/bookings');
+export const listMyBookings = (page = 0, size = 10) => request(`/bookings?page=${page}&size=${size}`);
 
 export const adminListMovies = () => request('/movies');
 export const adminCreateMovie = (data) => request('/admin/movies', { method: 'POST', body: JSON.stringify(data) });
@@ -102,3 +102,12 @@ export const adminListShowtimes = () => request('/admin/showtimes');
 export const adminCreateShowtime = (data) => request('/admin/showtimes', { method: 'POST', body: JSON.stringify(data) });
 export const adminUpdateShowtime = (id, data) => request(`/admin/showtimes/${id}`, { method: 'PUT', body: JSON.stringify(data) });
 export const adminDeleteShowtime = (id) => request(`/admin/showtimes/${id}`, { method: 'DELETE' });
+
+export const adminListUsers = () => request('/admin/users');
+export const adminUpdateUserRole = (id, role) => request(`/admin/users/${id}/role`, { method: 'PUT', body: JSON.stringify({ role }) });
+export const adminDeleteUser = (id) => request(`/admin/users/${id}`, { method: 'DELETE' });
+
+export const adminGetDashboardStats = () => request('/admin/dashboard/stats');
+export const adminListAllBookings = (page = 0, size = 10, status = '', search = '') =>
+  request(`/admin/dashboard/bookings?page=${page}&size=${size}${status ? `&status=${status}` : ''}${search ? `&search=${encodeURIComponent(search)}` : ''}`);
+export const adminCancelBooking = (bookingId) => request(`/admin/dashboard/bookings/${bookingId}/cancel`, { method: 'POST' });

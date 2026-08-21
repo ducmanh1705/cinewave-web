@@ -31,13 +31,23 @@ export default function App() {
 
   useEffect(() => {
     getMe()
-      .then(setUser)
+      .then((u) => {
+        setUser(u);
+        if (u && u.role === "ADMIN") {
+          setShowAdmin(true);
+        }
+      })
       .catch(() => setUser(null))
       .finally(() => setCheckingAuth(false));
   }, []);
 
   if (checkingAuth) return null;
-  if (!user) return <AuthPage onAuthenticated={setUser} />;
+  if (!user) return <AuthPage onAuthenticated={(u) => {
+    setUser(u);
+    if (u && u.role === "ADMIN") {
+      setShowAdmin(true);
+    }
+  }} />;
 
   function handleLogout() {
     logout();
@@ -96,7 +106,7 @@ export default function App() {
         </div>
       </header>
 
-      {showAdmin && <AdminPage onBack={() => setShowAdmin(false)} />}
+      {showAdmin && <AdminPage currentUser={user} onBack={() => setShowAdmin(false)} />}
 
       {!showAdmin && showHistory && (
         <HistoryPage onBack={() => setShowHistory(false)} />

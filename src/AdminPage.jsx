@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import * as api from "./api.js";
 
-export default function AdminPage({ onBack }) {
-  const [tab, setTab] = useState("movies");
+export default function AdminPage({ currentUser, onBack }) {
+  const [tab, setTab] = useState("dashboard");
 
   return (
     <div className="page animate-fade-in">
@@ -10,7 +10,7 @@ export default function AdminPage({ onBack }) {
         <div>
           <h2 className="section-title">Hệ thống quản trị</h2>
           <p style={{ color: "var(--color-text-muted)", fontSize: "13px", marginTop: "4px" }}>
-            Quản lý phim, rạp, phòng chiếu và lịch chiếu của CINEWAVE
+            Quản lý phim, rạp, phòng chiếu, lịch chiếu, người dùng và đơn đặt vé của CINEWAVE
           </p>
         </div>
         <button className="btn btn--secondary" onClick={onBack}>
@@ -20,10 +20,13 @@ export default function AdminPage({ onBack }) {
 
       <div className="admin-tab-container">
         {[
+          { key: "dashboard", label: "Tổng quan" },
           { key: "movies", label: "Phim ảnh" },
           { key: "cinemas", label: "Rạp chiếu" },
           { key: "rooms", label: "Phòng chiếu" },
           { key: "showtimes", label: "Suất chiếu" },
+          { key: "users", label: "Người dùng" },
+          { key: "bookings", label: "Đơn đặt vé" },
         ].map((t) => (
           <button
             key={t.key}
@@ -36,10 +39,13 @@ export default function AdminPage({ onBack }) {
       </div>
 
       <div style={{ marginTop: "24px" }}>
+        {tab === "dashboard" && <DashboardTab />}
         {tab === "movies" && <MovieTab />}
         {tab === "cinemas" && <CinemaTab />}
         {tab === "rooms" && <RoomTab />}
         {tab === "showtimes" && <ShowtimeTab />}
+        {tab === "users" && <UserTab currentUser={currentUser} />}
+        {tab === "bookings" && <BookingsTab />}
       </div>
     </div>
   );
@@ -698,3 +704,484 @@ function ShowtimeTab() {
     </div>
   );
 }
+
+// ---------- User Management ----------
+function UserTab({ currentUser }) {
+  const [items, setItems] = useState([]);
+  const [error, setError] = useState("");
+
+  function refresh() {
+    api
+      .adminListUsers()
+      .then(setItems)
+      .catch((err) => setError(err.message));
+  }
+  useEffect(refresh, []);
+
+  async function handleRoleChange(userId, newRole) {
+    if (!confirm(`Xác nhận đổi vai trò người dùng thành ${newRole}?`)) {
+      refresh(); // Reset selection if cancelled
+      return;
+    }
+    try {
+      setError("");
+      await api.adminUpdateUserRole(userId, newRole);
+      refresh();
+    } catch (err) {
+      setError(err.message);
+      refresh();
+    }
+  }
+
+  async function handleDelete(userId) {
+    if (!confirm("Bạn có chắc chắn muốn xóa người dùng này? Hành động này không thể hoàn tác.")) return;
+    try {
+      setError("");
+      await api.adminDeleteUser(userId);
+      refresh();
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
+  function formatTime(iso) {
+    if (!iso) return "";
+    return new Date(iso).toLocaleString("vi-VN", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  }
+
+  return (
+    <div>
+      {error && <div className="panel-new__error">{error}</div>}
+
+      <div className="admin-table-container">
+        <table className="admin-table-new">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Tên người dùng</th>
+              <th>Email</th>
+              <th>Vai trò (Role)</th>
+              <th>Ngày đăng ký</th>
+              <th style={{ textAlign: "right" }}>Thao tác</th>
+            </tr>
+          </thead>
+          <tbody>
+            {items.map((u) => (
+              <tr key={u.id}>
+                <td>#{u.id}</td>
+                <td style={{ fontWeight: 600, color: "var(--color-text-main)" }}>{u.fullName}</td>
+                <td>{u.email}</td>
+                <td>
+                  <select
+                    value={u.role}
+                    onChange={(e) => handleRoleChange(u.id, e.target.value)}
+                    disabled={u.id === currentUser?.id}
+                    style={{
+                      padding: "4px 8px",
+                      borderRadius: "4px",
+                      backgroundColor: "var(--color-bg-dark)",
+                      color: "var(--color-text-main)",
+                      border: "1px solid var(--color-border)",
+                      cursor: u.id === currentUser?.id ? "not-allowed" : "pointer"
+                    }}
+                  >
+                    <option value="USER">USER</option>
+                    <option value="ADMIN">ADMIN</option>
+                  </select>
+                  {u.id === currentUser?.id && (
+                    <span style={{ fontSize: "11px", color: "var(--color-accent)", marginLeft: "8px" }}>
+                      (Đang đăng nhập)
+                    </span>
+                  )}
+                </td>
+                <td>{formatTime(u.createdAt)}</td>
+                <td style={{ textAlign: "right" }}>
+                  <button
+                    className="admin-table-action-btn admin-table-action-btn--danger"
+                    disabled={u.id === currentUser?.id}
+                    onClick={() => handleDelete(u.id)}
+                    style={{
+                      opacity: u.id === currentUser?.id ? 0.5 : 1,
+                      cursor: u.id === currentUser?.id ? "not-allowed" : "pointer"
+                    }}
+                  >
+                    Xoá
+                  </button>
+                </td>
+              </tr>
+            ))}
+            {items.length === 0 && (
+              <tr>
+                <td colSpan="6" style={{ textAlign: "center", color: "var(--color-text-muted)", padding: "20px" }}>
+                  Chưa có dữ liệu người dùng.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+// ---------- Dashboard Tab ----------
+function DashboardTab() {
+  const [stats, setStats] = useState(null);
+  const [recentBookings, setRecentBookings] = useState([]);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    api.adminGetDashboardStats()
+      .then(setStats)
+      .catch((err) => setError(err.message));
+
+    api.adminListAllBookings(0, 5)
+      .then((data) => setRecentBookings(data.content))
+      .catch((err) => setError(err.message));
+  }, []);
+
+  function formatPrice(val) {
+    return (val || 0).toLocaleString("vi-VN") + "đ";
+  }
+
+  function getStatusLabel(status) {
+    switch (status) {
+      case "CONFIRMED": return "Đã thanh toán";
+      case "PENDING": return "Chờ thanh toán";
+      case "CANCELLED": return "Đã huỷ";
+      case "EXPIRED": return "Hết hạn";
+      default: return status;
+    }
+  }
+
+  function getStatusStyle(status) {
+    const baseStyle = {
+      padding: "4px 10px",
+      borderRadius: "12px",
+      fontSize: "12px",
+      fontWeight: "600",
+      display: "inline-block",
+      textAlign: "center",
+      width: "fit-content",
+    };
+    switch (status) {
+      case "CONFIRMED":
+        return { ...baseStyle, backgroundColor: "rgba(16, 185, 129, 0.15)", color: "#10b981" };
+      case "PENDING":
+        return { ...baseStyle, backgroundColor: "rgba(245, 158, 11, 0.15)", color: "#f59e0b" };
+      case "CANCELLED":
+        return { ...baseStyle, backgroundColor: "rgba(239, 68, 68, 0.15)", color: "#ef4444" };
+      default: // EXPIRED
+        return { ...baseStyle, backgroundColor: "rgba(148, 163, 184, 0.15)", color: "#94a3b8" };
+    }
+  }
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "32px" }}>
+      {error && <div className="panel-new__error">{error}</div>}
+
+      {/* Stats Cards */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "24px" }}>
+        <div className="panel-new" style={{ display: "flex", flexDirection: "column", gap: "8px", borderLeft: "4px solid var(--color-accent)" }}>
+          <span style={{ color: "var(--color-text-muted)", fontSize: "13px", fontWeight: 500 }}>TỔNG DOANH THU</span>
+          <span style={{ fontSize: "28px", fontWeight: 700, color: "var(--color-text-main)" }}>
+            {formatPrice(stats?.totalRevenue)}
+          </span>
+        </div>
+
+        <div className="panel-new" style={{ display: "flex", flexDirection: "column", gap: "8px", borderLeft: "4px solid #10b981" }}>
+          <span style={{ color: "var(--color-text-muted)", fontSize: "13px", fontWeight: 500 }}>VÉ ĐÃ ĐẶT (TẤT CẢ)</span>
+          <span style={{ fontSize: "28px", fontWeight: 700, color: "var(--color-text-main)" }}>
+            {stats?.totalBookings || 0}
+          </span>
+        </div>
+
+        <div className="panel-new" style={{ display: "flex", flexDirection: "column", gap: "8px", borderLeft: "4px solid #3b82f6" }}>
+          <span style={{ color: "var(--color-text-muted)", fontSize: "13px", fontWeight: 500 }}>NGƯỜI DÙNG</span>
+          <span style={{ fontSize: "28px", fontWeight: 700, color: "var(--color-text-main)" }}>
+            {stats?.totalUsers || 0}
+          </span>
+        </div>
+
+        <div className="panel-new" style={{ display: "flex", flexDirection: "column", gap: "8px", borderLeft: "4px solid #f59e0b" }}>
+          <span style={{ color: "var(--color-text-muted)", fontSize: "13px", fontWeight: 500 }}>PHIM ĐANG CHIẾU</span>
+          <span style={{ fontSize: "28px", fontWeight: 700, color: "var(--color-text-main)" }}>
+            {stats?.totalMovies || 0}
+          </span>
+        </div>
+      </div>
+
+      {/* Recent Bookings */}
+      <div className="panel-new">
+        <h3 className="panel-new__title" style={{ marginBottom: "20px" }}>Đơn đặt vé mới nhất</h3>
+        <div className="admin-table-container">
+          <table className="admin-table-new">
+            <thead>
+              <tr>
+                <th>Mã đặt vé</th>
+                <th>Khách hàng</th>
+                <th>Phim</th>
+                <th>Rạp / Phòng</th>
+                <th>Ghế</th>
+                <th>Số tiền</th>
+                <th>Trạng thái</th>
+              </tr>
+            </thead>
+            <tbody>
+              {recentBookings.map((b) => (
+                <tr key={b.id}>
+                  <td style={{ fontWeight: 600 }}>{b.paymentCode || `#${b.id}`}</td>
+                  <td>
+                    <div style={{ fontWeight: 500, color: "var(--color-text-main)" }}>{b.userFullName}</div>
+                    <div style={{ fontSize: "11px", color: "var(--color-text-muted)" }}>{b.userEmail}</div>
+                  </td>
+                  <td style={{ fontWeight: 500, color: "var(--color-text-main)" }}>{b.movieTitle}</td>
+                  <td>{b.cinemaName} — <span style={{ color: "var(--color-accent)" }}>{b.roomName}</span></td>
+                  <td>
+                    {b.seatIds.map((id) => (
+                      <span key={id} className="booking-summary-card__seat-tag" style={{ margin: "2px", fontSize: "11px" }}>Ghế {id}</span>
+                    ))}
+                  </td>
+                  <td style={{ fontWeight: 600, color: "var(--color-text-main)" }}>{formatPrice(b.totalAmount)}</td>
+                  <td>
+                    <span style={getStatusStyle(b.status)}>{getStatusLabel(b.status)}</span>
+                  </td>
+                </tr>
+              ))}
+              {recentBookings.length === 0 && (
+                <tr>
+                  <td colSpan="7" style={{ textAlign: "center", color: "var(--color-text-muted)", padding: "20px" }}>
+                    Chưa có giao dịch nào gần đây.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ---------- Bookings Management Tab ----------
+function BookingsTab() {
+  const [items, setItems] = useState([]);
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
+  const [status, setStatus] = useState("");
+  const [search, setSearch] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  function loadBookings() {
+    setLoading(true);
+    api.adminListAllBookings(page, 10, status, search)
+      .then((data) => {
+        setItems(data.content);
+        setTotalPages(data.totalPages);
+        setTotalElements(data.totalElements);
+      })
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false));
+  }
+
+  useEffect(loadBookings, [page, status]);
+
+  function handleSearchSubmit(e) {
+    e.preventDefault();
+    setPage(0);
+    loadBookings();
+  }
+
+  async function handleCancel(id) {
+    if (!confirm("Bạn có chắc chắn muốn hủy đơn hàng này và giải phóng các ghế liên quan?")) return;
+    try {
+      setError("");
+      await api.adminCancelBooking(id);
+      loadBookings();
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
+  function formatPrice(val) {
+    return (val || 0).toLocaleString("vi-VN") + "đ";
+  }
+
+  function formatTime(iso) {
+    if (!iso) return "";
+    return new Date(iso).toLocaleString("vi-VN", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  }
+
+  function getStatusLabel(status) {
+    switch (status) {
+      case "CONFIRMED": return "Đã thanh toán";
+      case "PENDING": return "Chờ thanh toán";
+      case "CANCELLED": return "Đã huỷ";
+      case "EXPIRED": return "Hết hạn";
+      default: return status;
+    }
+  }
+
+  function getStatusStyle(status) {
+    const baseStyle = {
+      padding: "4px 10px",
+      borderRadius: "12px",
+      fontSize: "12px",
+      fontWeight: "600",
+      display: "inline-block",
+      textAlign: "center",
+      width: "fit-content",
+    };
+    switch (status) {
+      case "CONFIRMED":
+        return { ...baseStyle, backgroundColor: "rgba(16, 185, 129, 0.15)", color: "#10b981" };
+      case "PENDING":
+        return { ...baseStyle, backgroundColor: "rgba(245, 158, 11, 0.15)", color: "#f59e0b" };
+      case "CANCELLED":
+        return { ...baseStyle, backgroundColor: "rgba(239, 68, 68, 0.15)", color: "#ef4444" };
+      default: // EXPIRED
+        return { ...baseStyle, backgroundColor: "rgba(148, 163, 184, 0.15)", color: "#94a3b8" };
+    }
+  }
+
+  return (
+    <div>
+      {error && <div className="panel-new__error">{error}</div>}
+
+      {/* Filter and Search controls */}
+      <div className="panel-new" style={{ marginBottom: "24px" }}>
+        <form onSubmit={handleSearchSubmit} style={{ display: "flex", gap: "16px", flexWrap: "wrap", alignItems: "flex-end" }}>
+          <div className="input-field" style={{ flex: 1, minWidth: "240px", marginBottom: 0 }}>
+            <span className="input-field__label">Tìm kiếm đơn đặt vé</span>
+            <input
+              className="input-field__input"
+              placeholder="Nhập mã đặt vé, email hoặc tên khách hàng..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+
+          <div className="input-field" style={{ width: "200px", marginBottom: 0 }}>
+            <span className="input-field__label">Trạng thái</span>
+            <select
+              className="input-field__select"
+              value={status}
+              onChange={(e) => { setStatus(e.target.value); setPage(0); }}
+            >
+              <option value="">Tất cả trạng thái</option>
+              <option value="PENDING">Chờ thanh toán</option>
+              <option value="CONFIRMED">Đã thanh toán</option>
+              <option value="CANCELLED">Đã huỷ</option>
+              <option value="EXPIRED">Hết hạn</option>
+            </select>
+          </div>
+
+          <button type="submit" className="btn btn--primary" disabled={loading} style={{ height: "42px" }}>
+            {loading ? "Đang tải..." : "Tìm kiếm"}
+          </button>
+        </form>
+      </div>
+
+      <div className="admin-table-container">
+        <table className="admin-table-new">
+          <thead>
+            <tr>
+              <th>Mã đặt vé</th>
+              <th>Khách hàng</th>
+              <th>Phim</th>
+              <th>Rạp / Phòng</th>
+              <th>Ghế</th>
+              <th>Ngày tạo</th>
+              <th>Số tiền</th>
+              <th>Trạng thái</th>
+              <th style={{ textAlign: "right" }}>Thao tác</th>
+            </tr>
+          </thead>
+          <tbody>
+            {items.map((b) => (
+              <tr key={b.id}>
+                <td style={{ fontWeight: 600 }}>{b.paymentCode || `#${b.id}`}</td>
+                <td>
+                  <div style={{ fontWeight: 500, color: "var(--color-text-main)" }}>{b.userFullName}</div>
+                  <div style={{ fontSize: "11px", color: "var(--color-text-muted)" }}>{b.userEmail}</div>
+                </td>
+                <td style={{ fontWeight: 500, color: "var(--color-text-main)" }}>{b.movieTitle}</td>
+                <td>{b.cinemaName} — <span style={{ color: "var(--color-accent)" }}>{b.roomName}</span></td>
+                <td>
+                  {b.seatIds.map((id) => (
+                    <span key={id} className="booking-summary-card__seat-tag" style={{ margin: "2px", fontSize: "11px" }}>Ghế {id}</span>
+                  ))}
+                </td>
+                <td style={{ fontSize: "12px" }}>{formatTime(b.createdAt)}</td>
+                <td style={{ fontWeight: 600, color: "var(--color-text-main)" }}>{formatPrice(b.totalAmount)}</td>
+                <td>
+                  <span style={getStatusStyle(b.status)}>{getStatusLabel(b.status)}</span>
+                </td>
+                <td style={{ textAlign: "right" }}>
+                  {b.status === "PENDING" && (
+                    <button
+                      className="admin-table-action-btn admin-table-action-btn--danger"
+                      onClick={() => handleCancel(b.id)}
+                    >
+                      Huỷ vé
+                    </button>
+                  )}
+                </td>
+              </tr>
+            ))}
+            {items.length === 0 && (
+              <tr>
+                <td colSpan="9" style={{ textAlign: "center", color: "var(--color-text-muted)", padding: "20px" }}>
+                  Không tìm thấy đơn đặt vé nào.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Pagination controls */}
+      {totalPages > 1 && (
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "24px" }}>
+          <span style={{ fontSize: "13px", color: "var(--color-text-muted)" }}>
+            Hiển thị trang {page + 1} / {totalPages} (Tổng cộng {totalElements} đơn)
+          </span>
+          <div style={{ display: "flex", gap: "8px" }}>
+            <button
+              className="btn btn--secondary"
+              disabled={page === 0 || loading}
+              onClick={() => setPage(page - 1)}
+              style={{ padding: "8px 16px", minWidth: "auto" }}
+            >
+              ← Trước
+            </button>
+            <button
+              className="btn btn--secondary"
+              disabled={page === totalPages - 1 || loading}
+              onClick={() => setPage(page + 1)}
+              style={{ padding: "8px 16px", minWidth: "auto" }}
+            >
+              Sau →
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
