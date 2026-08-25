@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { listMovies, listShowtimes } from "./api.js";
+import { useNavigate } from "react-router-dom";
 
-export default function MoviePage({ onSelectShowtime }) {
+export default function MoviePage() {
   const [movies, setMovies] = useState([]);
   const [activeMovieForModal, setActiveMovieForModal] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -93,14 +94,14 @@ export default function MoviePage({ onSelectShowtime }) {
         <MovieDetailsModal
           movie={activeMovieForModal}
           onClose={() => setActiveMovieForModal(null)}
-          onSelectShowtime={onSelectShowtime}
         />
       )}
     </div>
   );
 }
 
-function MovieDetailsModal({ movie, onClose, onSelectShowtime }) {
+function MovieDetailsModal({ movie, onClose }) {
+  const navigate = useNavigate();
   const [showtimes, setShowtimes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -204,7 +205,7 @@ function MovieDetailsModal({ movie, onClose, onSelectShowtime }) {
                             key={st.id}
                             className="showtime-btn"
                             onClick={() =>
-                              onSelectShowtime({ id: st.id, basePrice: st.basePrice })
+                              navigate(`/booking/${st.id}`, { state: { basePrice: st.basePrice } })
                             }
                           >
                             <span className="showtime-btn__time">{formatTime(st.startTime)}</span>

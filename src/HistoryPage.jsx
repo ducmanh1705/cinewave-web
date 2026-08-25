@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { listMyBookings } from "./api.js";
+import { useNavigate } from "react-router-dom";
 
 const STATUS_LABEL = {
   PENDING: "Chờ thanh toán",
@@ -8,7 +9,8 @@ const STATUS_LABEL = {
   EXPIRED: "Đã hết hạn",
 };
 
-export default function HistoryPage({ onBack }) {
+export default function HistoryPage() {
+  const navigate = useNavigate();
   const [bookings, setBookings] = useState([]);
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
@@ -63,7 +65,7 @@ export default function HistoryPage({ onBack }) {
         }}
       >
         <h2 className="section-title">Lịch sử đặt vé</h2>
-        <button className="btn btn--secondary" onClick={onBack}>
+        <button className="btn btn--secondary" onClick={() => navigate("/")}>
           ← Về trang chủ
         </button>
       </div>

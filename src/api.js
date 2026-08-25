@@ -1,4 +1,4 @@
-const BASE_URL = 'https://cinewave-api-oltx.onrender.com/api';
+const BASE_URL = import.meta.env.VITE_API_URL || 'https://cinewave-api-oltx.onrender.com/api';
 
 let refreshPromise = null; // gộp các request 401 đồng thời thành 1 lần refresh duy nhất
 let onAuthExpired = null; // callback App.jsx đăng ký để biết khi nào phải quay về login

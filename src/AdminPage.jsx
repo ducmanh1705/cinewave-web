@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import * as api from "./api.js";
+import { useNavigate } from "react-router-dom";
 
-export default function AdminPage({ currentUser, onBack }) {
+export default function AdminPage({ currentUser }) {
+  const navigate = useNavigate();
   const [tab, setTab] = useState("dashboard");
 
   return (
@@ -13,7 +15,7 @@ export default function AdminPage({ currentUser, onBack }) {
             Quản lý phim, rạp, phòng chiếu, lịch chiếu, người dùng và đơn đặt vé của CINEWAVE
           </p>
         </div>
-        <button className="btn btn--secondary" onClick={onBack}>
+        <button className="btn btn--secondary" onClick={() => navigate("/")}>
           ← Về trang chủ
         </button>
       </div>

@@ -1,9 +1,14 @@
 import { useEffect, useState } from "react";
 import { getBooking, cancelBooking } from "./api.js";
 
+import { useParams, useNavigate } from "react-router-dom";
+
 const POLL_INTERVAL_MS = 3000;
 
-export default function PaymentPage({ bookingId, onDone, onBack }) {
+export default function PaymentPage() {
+  const { bookingId } = useParams();
+  const navigate = useNavigate();
+  
   const [booking, setBooking] = useState(null);
   const [error, setError] = useState("");
   const [isCancelling, setIsCancelling] = useState(false);
@@ -35,7 +40,7 @@ export default function PaymentPage({ bookingId, onDone, onBack }) {
           <div className="panel-new__error">
             <span>{error}</span>
           </div>
-          <button className="btn btn--secondary" style={{ width: "100%" }} onClick={onBack}>
+          <button className="btn btn--secondary" style={{ width: "100%" }} onClick={() => navigate("/")}>
             ← Quay lại
           </button>
         </div>
@@ -70,7 +75,7 @@ export default function PaymentPage({ bookingId, onDone, onBack }) {
             </div>
           </div>
 
-          <button className="btn btn--primary" style={{ width: "100%" }} onClick={onDone}>
+          <button className="btn btn--primary" style={{ width: "100%" }} onClick={() => navigate("/")}>
             Về trang chủ
           </button>
         </div>
@@ -90,7 +95,7 @@ export default function PaymentPage({ bookingId, onDone, onBack }) {
             Đơn hàng đã {booking.status === "EXPIRED" ? "hết hạn giữ chỗ" : "bị hủy"} trước khi thanh
             toán được hệ thống xác nhận. Ghế trống đã được mở lại cho người dùng khác.
           </p>
-          <button className="btn btn--primary" style={{ width: "100%" }} onClick={onBack}>
+          <button className="btn btn--primary" style={{ width: "100%" }} onClick={() => navigate("/")}>
             Thực hiện đặt vé lại
           </button>
         </div>
@@ -102,7 +107,11 @@ export default function PaymentPage({ bookingId, onDone, onBack }) {
     setIsCancelling(true);
     try {
       await cancelBooking(bookingId);
-      onBack();
+      if (booking && booking.showtimeId) {
+        navigate(`/booking/${booking.showtimeId}`);
+      } else {
+        navigate(-1);
+      }
     } catch (err) {
       setError("Không thể hủy đặt vé: " + err.message);
     } finally {
