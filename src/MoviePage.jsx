@@ -25,7 +25,7 @@ export default function MoviePage() {
 
       {heroMovie && (
         <div className="hero-banner">
-          <div className="hero-banner__image-placeholder" />
+          <div className="hero-banner__image-placeholder" style={heroMovie.posterUrl ? { backgroundImage: `url(${heroMovie.posterUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}} />
           <div className="hero-banner__content">
             <span className="hero-banner__badge">Phim nổi bật</span>
             <h2 className="hero-banner__title">{heroMovie.title}</h2>
@@ -65,13 +65,19 @@ export default function MoviePage() {
             className="movie-card-new"
             onClick={() => setActiveMovieForModal(movie)}
           >
-            <div className="movie-card-new__poster">
-              <div className="movie-card-new__poster-glow" />
-              <div className="movie-card-new__poster-icon">🎬</div>
-              <span style={{ fontSize: "12px", letterSpacing: "1px", fontWeight: 700 }}>
-                {movie.posterUrl ? "POSTER" : "CINEWAVE"}
-              </span>
-            </div>
+          <div className="movie-card-new__poster">
+            {movie.posterUrl ? (
+              <img src={movie.posterUrl} alt={movie.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            ) : (
+              <>
+                <div className="movie-card-new__poster-glow" />
+                <div className="movie-card-new__poster-icon">🎬</div>
+                <span style={{ fontSize: "12px", letterSpacing: "1px", fontWeight: 700 }}>
+                  CINEWAVE
+                </span>
+              </>
+            )}
+          </div>
             <div className="movie-card-new__content">
               <h4 className="movie-card-new__title">{movie.title}</h4>
               <div className="movie-card-new__meta">
@@ -148,7 +154,7 @@ function MovieDetailsModal({ movie, onClose }) {
           ✕
         </button>
 
-        <div className="modal-hero">
+        <div className="modal-hero" style={movie.posterUrl ? { backgroundImage: `url(${movie.posterUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}>
           <div className="modal-hero__gradient" />
           <h2 className="modal-hero__title">{movie.title}</h2>
         </div>
