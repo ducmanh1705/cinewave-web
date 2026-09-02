@@ -55,10 +55,10 @@ export default function SeatMapPage() {
       );
       navigate(`/payment/${bookingResult.bookingId}`);
     } catch (err) {
-      setErrorMessage(
+      toast.error(
         err.conflictSeatIds?.length
           ? `${err.message} — ghế: ${err.conflictSeatIds.join(", ")}`
-          : err.message,
+          : err.message
       );
       refreshSeatMap();
     } finally {

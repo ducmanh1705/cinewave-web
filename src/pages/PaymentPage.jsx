@@ -33,21 +33,6 @@ export default function PaymentPage() {
     };
   }, [bookingId]);
 
-  if (error) {
-    return (
-      <div className="page page--narrow">
-        <div className="panel-new" style={{ textAlign: "center" }}>
-          <div className="panel-new__error">
-            <span>{error}</span>
-          </div>
-          <button className="btn btn--secondary" style={{ width: "100%" }} onClick={() => navigate("/")}>
-            ← Quay lại
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   if (!booking) return null;
 
   if (booking.status === "CONFIRMED") {
@@ -113,7 +98,7 @@ export default function PaymentPage() {
         navigate(-1);
       }
     } catch (err) {
-      setError("Không thể hủy đặt vé: " + err.message);
+      toast.error("Không thể hủy đặt vé: " + err.message);
     } finally {
       setIsCancelling(false);
     }

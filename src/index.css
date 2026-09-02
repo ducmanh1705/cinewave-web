@@ -932,6 +932,8 @@ body {
 }
 
 .booking-summary-card__seat-tag {
+  white-space: nowrap;
+  display: inline-block;
   background: rgba(59, 130, 246, 0.15);
   border: 1px solid rgba(59, 130, 246, 0.3);
   color: var(--color-primary);
@@ -1304,4 +1306,5 @@ body {
   font-weight: 700;
   color: var(--color-text-main);
 }
+
 
