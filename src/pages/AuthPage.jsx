@@ -1,17 +1,17 @@
+import toast from "react-hot-toast";
 import { useState } from "react";
-import { login, register } from "./api.js";
+import { login, register } from "../services/api.js";
 
 export default function AuthPage({ onAuthenticated }) {
   const [mode, setMode] = useState("login"); // 'login' | 'register'
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e) {
     e.preventDefault();
-    setError("");
+    
     setLoading(true);
     try {
       const user =
@@ -23,12 +23,12 @@ export default function AuthPage({ onAuthenticated }) {
         // đăng ký xong tự động chuyển sang login
         setMode("login");
         setPassword("");
-        setError("Đăng ký thành công — hãy đăng nhập để tiếp tục.");
+        toast.success("Đăng ký thành công — hãy đăng nhập để tiếp tục.");
       } else {
         onAuthenticated(user);
       }
     } catch (err) {
-      setError(err.message);
+      toast.error(err.message);
     } finally {
       setLoading(false);
     }
@@ -86,11 +86,7 @@ export default function AuthPage({ onAuthenticated }) {
               />
             </div>
 
-            {error && (
-              <div className="panel-new__error" style={{ marginTop: "12px", marginBottom: "16px" }}>
-                <span>{error}</span>
-              </div>
-            )}
+            
 
             <button
               className="btn btn--primary"
@@ -112,7 +108,7 @@ export default function AuthPage({ onAuthenticated }) {
               className="btn btn--link"
               onClick={() => {
                 setMode(mode === "login" ? "register" : "login");
-                setError("");
+                
               }}
             >
               {mode === "login"

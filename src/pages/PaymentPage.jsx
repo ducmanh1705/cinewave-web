@@ -1,5 +1,6 @@
+import toast from "react-hot-toast";
 import { useEffect, useState } from "react";
-import { getBooking, cancelBooking } from "./api.js";
+import { getBooking, cancelBooking } from "../services/api.js";
 
 import { useParams, useNavigate } from "react-router-dom";
 
@@ -10,7 +11,6 @@ export default function PaymentPage() {
   const navigate = useNavigate();
   
   const [booking, setBooking] = useState(null);
-  const [error, setError] = useState("");
   const [isCancelling, setIsCancelling] = useState(false);
 
   useEffect(() => {
@@ -21,7 +21,7 @@ export default function PaymentPage() {
         const data = await getBooking(bookingId);
         if (!cancelled) setBooking(data);
       } catch (err) {
-        if (!cancelled) setError(err.message);
+        if (!cancelled) toast.error(err.message);
       }
     }
 

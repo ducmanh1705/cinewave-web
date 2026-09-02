@@ -1,5 +1,6 @@
+import toast from "react-hot-toast";
 import { useEffect, useRef, useState } from "react";
-import { getSeatMap, holdSeats, createBooking } from "./api.js";
+import { getSeatMap, holdSeats, createBooking } from "../services/api.js";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 
 const POLL_INTERVAL_MS = 5000;
@@ -13,7 +14,6 @@ export default function SeatMapPage() {
 
   const [seatMap, setSeatMap] = useState({});
   const [selectedSeats, setSelectedSeats] = useState([]);
-  const [errorMessage, setErrorMessage] = useState("");
   const [isBooking, setIsBooking] = useState(false);
   const pollRef = useRef(null);
 
@@ -22,7 +22,7 @@ export default function SeatMapPage() {
       const data = await getSeatMap(showtimeId);
       setSeatMap(data);
     } catch (err) {
-      setErrorMessage(err.message);
+      toast.error(err.message);
     }
   }
 
@@ -43,7 +43,7 @@ export default function SeatMapPage() {
 
   async function handleBook() {
     if (selectedSeats.length === 0) return;
-    setErrorMessage("");
+    
     setIsBooking(true);
     try {
       const holdResult = await holdSeats(showtimeId, selectedSeats);
@@ -174,11 +174,7 @@ export default function SeatMapPage() {
             </span>
           </div>
 
-          {errorMessage && (
-            <div className="panel-new__error" style={{ marginTop: "16px" }}>
-              <span>{errorMessage}</span>
-            </div>
-          )}
+          
 
           <button
             className="btn btn--primary"

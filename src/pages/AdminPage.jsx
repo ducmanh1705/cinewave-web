@@ -1,6 +1,9 @@
+import toast from "react-hot-toast";
 import { useEffect, useState } from "react";
-import * as api from "./api.js";
+import * as api from "../services/api.js";
 import { useNavigate } from "react-router-dom";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { Users, Film, Ticket, DollarSign, Calendar, TrendingUp } from "lucide-react";
 
 export default function AdminPage({ currentUser }) {
   const navigate = useNavigate();
@@ -57,13 +60,11 @@ export default function AdminPage({ currentUser }) {
 function MovieTab() {
   const [items, setItems] = useState([]);
   const [editing, setEditing] = useState(null); // null = ẩn form, {} = tạo mới, {...} = sửa
-  const [error, setError] = useState("");
-
   function refresh() {
     api
       .adminListMovies()
       .then(setItems)
-      .catch((err) => setError(err.message));
+      .catch((err) => toast.error(err.message));
   }
   useEffect(refresh, []);
 
@@ -74,7 +75,7 @@ function MovieTab() {
       setEditing(null);
       refresh();
     } catch (err) {
-      setError(err.message);
+      toast.error(err.message);
     }
   }
 
@@ -84,13 +85,13 @@ function MovieTab() {
       await api.adminDeleteMovie(id);
       refresh();
     } catch (err) {
-      setError(err.message);
+      toast.error(err.message);
     }
   }
 
   return (
     <div>
-      {error && <div className="panel-new__error">{error}</div>}
+      
 
       <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "20px" }}>
         <button
@@ -218,13 +219,11 @@ function MovieTab() {
 function CinemaTab() {
   const [items, setItems] = useState([]);
   const [editing, setEditing] = useState(null);
-  const [error, setError] = useState("");
-
   function refresh() {
     api
       .adminListCinemas()
       .then(setItems)
-      .catch((err) => setError(err.message));
+      .catch((err) => toast.error(err.message));
   }
   useEffect(refresh, []);
 
@@ -235,7 +234,7 @@ function CinemaTab() {
       setEditing(null);
       refresh();
     } catch (err) {
-      setError(err.message);
+      toast.error(err.message);
     }
   }
 
@@ -245,13 +244,13 @@ function CinemaTab() {
       await api.adminDeleteCinema(id);
       refresh();
     } catch (err) {
-      setError(err.message);
+      toast.error(err.message);
     }
   }
 
   return (
     <div>
-      {error && <div className="panel-new__error">{error}</div>}
+      
 
       <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "20px" }}>
         <button className="btn btn--primary" onClick={() => setEditing({ name: "", address: "" })}>
@@ -343,17 +342,15 @@ function RoomTab() {
   const [items, setItems] = useState([]);
   const [cinemas, setCinemas] = useState([]);
   const [editing, setEditing] = useState(null);
-  const [error, setError] = useState("");
-
   function refresh() {
     api
       .adminListRooms()
       .then(setItems)
-      .catch((err) => setError(err.message));
+      .catch((err) => toast.error(err.message));
     api
       .adminListCinemas()
       .then(setCinemas)
-      .catch((err) => setError(err.message));
+      .catch((err) => toast.error(err.message));
   }
   useEffect(refresh, []);
 
@@ -368,7 +365,7 @@ function RoomTab() {
       setEditing(null);
       refresh();
     } catch (err) {
-      setError(err.message);
+      toast.error(err.message);
     }
   }
 
@@ -378,7 +375,7 @@ function RoomTab() {
       await api.adminDeleteRoom(id);
       refresh();
     } catch (err) {
-      setError(err.message);
+      toast.error(err.message);
     }
   }
 
@@ -388,7 +385,7 @@ function RoomTab() {
 
   return (
     <div>
-      {error && <div className="panel-new__error">{error}</div>}
+      
 
       <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "20px" }}>
         <button
@@ -514,21 +511,19 @@ function ShowtimeTab() {
   const [movies, setMovies] = useState([]);
   const [rooms, setRooms] = useState([]);
   const [editing, setEditing] = useState(null);
-  const [error, setError] = useState("");
-
   function refresh() {
     api
       .adminListShowtimes()
       .then(setItems)
-      .catch((err) => setError(err.message));
+      .catch((err) => toast.error(err.message));
     api
       .adminListMovies()
       .then(setMovies)
-      .catch((err) => setError(err.message));
+      .catch((err) => toast.error(err.message));
     api
       .adminListRooms()
       .then(setRooms)
-      .catch((err) => setError(err.message));
+      .catch((err) => toast.error(err.message));
   }
   useEffect(refresh, []);
 
@@ -545,7 +540,7 @@ function ShowtimeTab() {
       setEditing(null);
       refresh();
     } catch (err) {
-      setError(err.message);
+      toast.error(err.message);
     }
   }
 
@@ -555,7 +550,7 @@ function ShowtimeTab() {
       await api.adminDeleteShowtime(id);
       refresh();
     } catch (err) {
-      setError(err.message);
+      toast.error(err.message);
     }
   }
 
@@ -570,7 +565,7 @@ function ShowtimeTab() {
 
   return (
     <div>
-      {error && <div className="panel-new__error">{error}</div>}
+      
 
       <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "20px" }}>
         <button
@@ -710,13 +705,11 @@ function ShowtimeTab() {
 // ---------- User Management ----------
 function UserTab({ currentUser }) {
   const [items, setItems] = useState([]);
-  const [error, setError] = useState("");
-
   function refresh() {
     api
       .adminListUsers()
       .then(setItems)
-      .catch((err) => setError(err.message));
+      .catch((err) => toast.error(err.message));
   }
   useEffect(refresh, []);
 
@@ -726,11 +719,11 @@ function UserTab({ currentUser }) {
       return;
     }
     try {
-      setError("");
+      
       await api.adminUpdateUserRole(userId, newRole);
       refresh();
     } catch (err) {
-      setError(err.message);
+      toast.error(err.message);
       refresh();
     }
   }
@@ -738,11 +731,11 @@ function UserTab({ currentUser }) {
   async function handleDelete(userId) {
     if (!confirm("Bạn có chắc chắn muốn xóa người dùng này? Hành động này không thể hoàn tác.")) return;
     try {
-      setError("");
+      
       await api.adminDeleteUser(userId);
       refresh();
     } catch (err) {
-      setError(err.message);
+      toast.error(err.message);
     }
   }
 
@@ -759,7 +752,7 @@ function UserTab({ currentUser }) {
 
   return (
     <div>
-      {error && <div className="panel-new__error">{error}</div>}
+      
 
       <div className="admin-table-container">
         <table className="admin-table-new">
@@ -836,16 +829,14 @@ function UserTab({ currentUser }) {
 function DashboardTab() {
   const [stats, setStats] = useState(null);
   const [recentBookings, setRecentBookings] = useState([]);
-  const [error, setError] = useState("");
-
   useEffect(() => {
     api.adminGetDashboardStats()
       .then(setStats)
-      .catch((err) => setError(err.message));
+      .catch((err) => toast.error(err.message));
 
     api.adminListAllBookings(0, 5)
       .then((data) => setRecentBookings(data.content))
-      .catch((err) => setError(err.message));
+      .catch((err) => toast.error(err.message));
   }, []);
 
   function formatPrice(val) {
@@ -886,7 +877,7 @@ function DashboardTab() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "32px" }}>
-      {error && <div className="panel-new__error">{error}</div>}
+      
 
       {/* Stats Cards */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "24px" }}>
@@ -979,7 +970,6 @@ function BookingsTab() {
   const [totalElements, setTotalElements] = useState(0);
   const [status, setStatus] = useState("");
   const [search, setSearch] = useState("");
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   function loadBookings() {
@@ -990,7 +980,7 @@ function BookingsTab() {
         setTotalPages(data.totalPages);
         setTotalElements(data.totalElements);
       })
-      .catch((err) => setError(err.message))
+      .catch((err) => toast.error(err.message))
       .finally(() => setLoading(false));
   }
 
@@ -1005,11 +995,11 @@ function BookingsTab() {
   async function handleCancel(id) {
     if (!confirm("Bạn có chắc chắn muốn hủy đơn hàng này và giải phóng các ghế liên quan?")) return;
     try {
-      setError("");
+      
       await api.adminCancelBooking(id);
       loadBookings();
     } catch (err) {
-      setError(err.message);
+      toast.error(err.message);
     }
   }
 
@@ -1062,7 +1052,7 @@ function BookingsTab() {
 
   return (
     <div>
-      {error && <div className="panel-new__error">{error}</div>}
+      
 
       {/* Filter and Search controls */}
       <div className="panel-new" style={{ marginBottom: "24px" }}>

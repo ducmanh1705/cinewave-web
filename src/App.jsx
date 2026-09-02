@@ -1,68 +1,20 @@
 import { useEffect, useState } from "react";
-import { BrowserRouter, Routes, Route, useNavigate, useLocation } from "react-router-dom";
-import { getMe, logout, setOnAuthExpired } from "./api.js";
-import AuthPage from "./AuthPage.jsx";
-import MoviePage from "./MoviePage.jsx";
-import PaymentPage from "./PaymentPage.jsx";
-import HistoryPage from "./HistoryPage.jsx";
-import AdminPage from "./AdminPage.jsx";
-import SeatMapPage from "./SeatMapPage.jsx";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { getMe, logout, setOnAuthExpired } from "./services/api.js";
+import AuthPage from "./pages/AuthPage.jsx";
+import MoviePage from "./pages/MoviePage.jsx";
+import PaymentPage from "./pages/PaymentPage.jsx";
+import HistoryPage from "./pages/HistoryPage.jsx";
+import AdminPage from "./pages/AdminPage.jsx";
+import SeatMapPage from "./pages/SeatMapPage.jsx";
+import Navigation from "./components/Navigation.jsx";
+import { Toaster } from "react-hot-toast";
 import "./index.css";
-
-function Navigation({ user, onLogout }) {
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  const handleLogout = () => {
-    onLogout();
-    navigate("/");
-  };
-
-  return (
-    <header className="navbar">
-      <div className="navbar__brand" onClick={() => navigate("/")} style={{ cursor: 'pointer' }}>
-        <span>CINE</span>
-        <span className="navbar__brand-wave">WAVE</span>
-      </div>
-
-      <div className="navbar__menu">
-        <button
-          className={`navbar__link ${location.pathname === '/' ? 'navbar__link--active' : ''}`}
-          onClick={() => navigate("/")}
-        >
-          Trang chủ
-        </button>
-        <button
-          className={`navbar__link ${location.pathname === '/history' ? 'navbar__link--active' : ''}`}
-          onClick={() => navigate("/history")}
-        >
-          Lịch sử vé
-        </button>
-        {user.role === "ADMIN" && (
-          <button
-            className={`navbar__link ${location.pathname.startsWith('/admin') ? 'navbar__link--active' : ''}`}
-            onClick={() => navigate("/admin")}
-          >
-            Quản trị
-          </button>
-        )}
-        <div className="navbar__user">
-          <div className="navbar__avatar">
-            {user.fullName ? user.fullName.charAt(0).toUpperCase() : 'U'}
-          </div>
-          <span className="navbar__user-name">{user.fullName}</span>
-          <button className="navbar__logout" onClick={handleLogout}>
-            Đăng xuất
-          </button>
-        </div>
-      </div>
-    </header>
-  );
-}
 
 export default function App() {
   return (
     <BrowserRouter>
+      <Toaster position="top-right" />
       <AppContent />
     </BrowserRouter>
   );

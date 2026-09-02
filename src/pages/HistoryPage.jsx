@@ -1,5 +1,6 @@
+import toast from "react-hot-toast";
 import { useEffect, useState } from "react";
-import { listMyBookings } from "./api.js";
+import { listMyBookings } from "../services/api.js";
 import { useNavigate } from "react-router-dom";
 
 const STATUS_LABEL = {
@@ -16,8 +17,6 @@ export default function HistoryPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [error, setError] = useState("");
-
   useEffect(() => {
     listMyBookings(0, 10)
       .then((res) => {
@@ -25,7 +24,7 @@ export default function HistoryPage() {
         setTotalPages(res.totalPages);
         setPage(0);
       })
-      .catch((err) => setError(err.message))
+      .catch((err) => toast.error(err.message))
       .finally(() => setLoading(false));
   }, []);
 
@@ -36,7 +35,7 @@ export default function HistoryPage() {
       setBookings((prev) => [...prev, ...res.content]);
       setPage(page + 1);
     } catch (err) {
-      setError(err.message);
+      toast.error(err.message);
     } finally {
       setLoadingMore(false);
     }
@@ -70,7 +69,7 @@ export default function HistoryPage() {
         </button>
       </div>
 
-      {error && <div className="panel-new__error">{error}</div>}
+      
 
       <div className="ticket-list">
         {bookings.map((b) => (

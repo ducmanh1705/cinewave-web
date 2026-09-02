@@ -1,17 +1,16 @@
+import toast from "react-hot-toast";
 import { useEffect, useState } from "react";
-import { listMovies, listShowtimes } from "./api.js";
+import { listMovies, listShowtimes } from "../services/api.js";
 import { useNavigate } from "react-router-dom";
 
 export default function MoviePage() {
   const [movies, setMovies] = useState([]);
   const [activeMovieForModal, setActiveMovieForModal] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
   useEffect(() => {
     listMovies()
       .then(setMovies)
-      .catch((err) => setError(err.message))
+      .catch((err) => toast.error(err.message))
       .finally(() => setLoading(false));
   }, []);
 
@@ -21,7 +20,7 @@ export default function MoviePage() {
 
   return (
     <div className="page">
-      {error && <div className="panel-new__error">{error}</div>}
+      
 
       {heroMovie && (
         <div className="hero-banner">
@@ -110,12 +109,10 @@ function MovieDetailsModal({ movie, onClose }) {
   const navigate = useNavigate();
   const [showtimes, setShowtimes] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
   useEffect(() => {
     listShowtimes(movie.id)
       .then(setShowtimes)
-      .catch((err) => setError(err.message))
+      .catch((err) => toast.error(err.message))
       .finally(() => setLoading(false));
   }, [movie.id]);
 
@@ -160,7 +157,7 @@ function MovieDetailsModal({ movie, onClose }) {
         </div>
 
         <div className="modal-body">
-          {error && <div className="panel-new__error">{error}</div>}
+          
 
           <div className="modal-info-grid">
             <div>
